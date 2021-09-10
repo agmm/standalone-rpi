@@ -1,0 +1,14 @@
+raspberrypi.local {
+  reverse_proxy api-gateway:3000  {
+    header_down Strict-Transport-Security max-age=31536000;
+   }
+}
+
+# To use a custom domain uncomment the following lines
+# then place fullchain.pem and privkey.pem inside ./certs
+# some.example.com {
+#   tls /etc/caddy/certs/fullchain.pem /etc/caddy/certs/privkey.pem
+#   reverse_proxy api-gateway:3000  {
+#     header_down Strict-Transport-Security max-age=31536000;
+#    }
+# }

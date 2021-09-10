@@ -1,0 +1,12 @@
+.DS_Store
+
+# MySQL & Redis data
+data/mysql
+data/redis
+data/import/*.sql
+
+# Ignore ENV variables config
+.env
+auth.env
+api-gateway.env
+syncing-server.env

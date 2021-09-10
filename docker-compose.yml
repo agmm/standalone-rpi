@@ -1,0 +1,173 @@
+version: '3.8'
+services:
+  caddy:
+    image: caddy
+    container_name: caddy-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+    volumes:            
+        - $PWD/Caddyfile:/etc/caddy/Caddyfile
+        - $PWD/certs:/etc/caddy/certs
+        - caddy_data:/data
+        - caddy_config:/config
+
+  syncing-server-js:
+    image: blmhemu/snotes-syncing-server-js:latest
+    container_name: syncing-server-js
+    depends_on:
+      - db
+      - cache
+    entrypoint: [
+      "./wait-for.sh", "db", "3306",
+      "./wait-for.sh", "cache", "6379",
+      "./docker/entrypoint.sh", "start-web"
+    ]
+    env_file: .env
+    environment:
+      PORT: 3000
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+
+  syncing-server-js-worker:
+    image: blmhemu/snotes-syncing-server-js:latest
+    container_name: syncing-server-js-worker
+    depends_on:
+      - db
+      - cache
+      - syncing-server-js
+    entrypoint: [
+      "./wait-for.sh", "db", "3306",
+      "./wait-for.sh", "cache", "6379",
+      "./wait-for.sh", "syncing-server-js", "3000",
+       "./docker/entrypoint.sh", "start-worker"
+    ]
+    env_file: .env
+    environment:
+      PORT: 3000
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+
+  api-gateway:
+    image: blmhemu/snotes-api-gateway:latest
+    container_name: api-gateway
+    depends_on:
+      - auth
+      - syncing-server-js
+    env_file: docker/api-gateway.env
+    # Maybe can be removed
+    ports:
+      - ${EXPOSED_PORT}:3000
+    environment:
+      PORT: 3000
+      AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
+    entrypoint: [
+      "./wait-for.sh", "auth", "3000",
+      "./wait-for.sh", "syncing-server-js", "3000",
+      "./docker/entrypoint.sh", "start-web"
+    ]
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+
+  auth:
+    image: blmhemu/snotes-auth:latest
+    container_name: auth
+    depends_on:
+      - db
+      - cache
+      - syncing-server-js
+    entrypoint: [
+      "./wait-for.sh", "db", "3306",
+      "./wait-for.sh", "cache", "6379",
+      "./wait-for.sh", "syncing-server-js", "3000",
+      "./docker/entrypoint.sh", "start-web"
+    ]
+    env_file: docker/auth.env
+    environment:
+      PORT: 3000
+      DB_HOST: '${DB_HOST}'
+      DB_REPLICA_HOST: '${DB_REPLICA_HOST}'
+      DB_PORT: '${DB_PORT}'
+      DB_DATABASE: '${DB_DATABASE}'
+      DB_USERNAME: '${DB_USERNAME}'
+      DB_PASSWORD: '${DB_PASSWORD}'
+      DB_DEBUG_LEVEL: '${DB_DEBUG_LEVEL}'
+      DB_MIGRATIONS_PATH: '${DB_MIGRATIONS_PATH}'
+      REDIS_URL: '${REDIS_URL}'
+      AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+
+  auth-worker:
+    image: blmhemu/snotes-auth:latest
+    container_name: auth-worker
+    depends_on:
+      - db
+      - cache
+      - auth
+    entrypoint: [
+      "./wait-for.sh", "db", "3306",
+      "./wait-for.sh", "cache", "6379",
+      "./wait-for.sh", "auth", "3000",
+      "./docker/entrypoint.sh", "start-worker"
+    ]
+    env_file: docker/auth.env
+    environment:
+      PORT: 3000
+      DB_HOST: '${DB_HOST}'
+      DB_REPLICA_HOST: '${DB_REPLICA_HOST}'
+      DB_PORT: '${DB_PORT}'
+      DB_DATABASE: '${DB_DATABASE}'
+      DB_USERNAME: '${DB_USERNAME}'
+      DB_PASSWORD: '${DB_PASSWORD}'
+      DB_DEBUG_LEVEL: '${DB_DEBUG_LEVEL}'
+      DB_MIGRATIONS_PATH: '${DB_MIGRATIONS_PATH}'
+      REDIS_URL: '${REDIS_URL}'
+      AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+
+  db:
+    image: jsurf/rpi-mariadb
+    container_name: db
+    environment:
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+    expose:
+      - 3306
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./data/import:/docker-entrypoint-initdb.d
+    networks:
+      - standardnotes_standalone
+
+  cache:
+    image: redis:6.0-alpine
+    container_name: cache
+    volumes:
+      - ./data/redis/:/data
+    expose:
+      - 6379
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+
+networks:
+  standardnotes_standalone:
+    name: standardnotes_standalone
+
+volumes:
+  caddy_data:
+  caddy_config:
