@@ -15,11 +15,8 @@
 ## Installation
 
 ```bash
-git clone https://github.com/agmm/standalone-rpi.git && sudo bash ./standalone-rpi/install.sh
+git clone https://github.com/agmm/standalone-rpi.git && cd standalone-rpi && sudo bash ./install.sh
 ```
-
-<!--
-The `install.sh` script will populate the secret keys and passwords in the configuration files with random values. Then it will start the Standard Notes server infrastructure. -->
 
 ## Usage
 
