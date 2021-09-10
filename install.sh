@@ -28,8 +28,8 @@ cleanup() {
 auth_values=(
     "legacy_jwt_secret::$(random_hex)"
     "secret_key::$(random_hex)"
-    "feffe9928665731c6d6a8f9467308308feffe9928665731c6d6a8f9467308308::$(random_hex)"
-    "=secret::=$(random_hex)"
+    "encryption_server_key::$(random_hex)"
+    "main_jwt_secret::$(random_hex)"
 )
 
 # Values for .env
