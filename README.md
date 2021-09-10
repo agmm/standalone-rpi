@@ -47,7 +47,7 @@ The general setup would be the following:
 - Caddy configured to handle requests from that domain
 
 <!-- ## Extensions
-To add extensions: go to `Extensions` and paste `https://snext.netlify.com/index.json` where it asks for your "Extended Activation Code". -->
+To add extensions: go to `Extensions` and paste `https://snext.netlify.app/index.json` where it asks for your "Extended Activation Code". -->
 
 ## License
 
