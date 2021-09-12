@@ -19,7 +19,7 @@ replace_keywords() {
 }
 
 cleanup() {
-    yes | bash ./server.sh cleanup
+    bash ./server.sh cleanup
     rm .env
     rm ./docker/auth.env
 }
