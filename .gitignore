@@ -10,3 +10,6 @@ data/import/*.sql
 auth.env
 api-gateway.env
 syncing-server.env
+
+# Ignore credentials
+*.pem
