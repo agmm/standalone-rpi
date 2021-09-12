@@ -4,16 +4,16 @@ services:
     image: caddy
     container_name: caddy-proxy
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     restart: unless-stopped
     networks:
       - standardnotes_standalone
-    volumes:            
-        - $PWD/Caddyfile:/etc/caddy/Caddyfile
-        - $PWD/certs:/etc/caddy/certs
-        - caddy_data:/data
-        - caddy_config:/config
+    volumes:
+      - $PWD/Caddyfile:/etc/caddy/Caddyfile
+      - $PWD/certs:/etc/caddy/certs
+      - caddy_data:/data
+      - caddy_config:/config
 
   syncing-server-js:
     image: blmhemu/snotes-syncing-server-js:latest
@@ -21,11 +21,17 @@ services:
     depends_on:
       - db
       - cache
-    entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./docker/entrypoint.sh", "start-web"
-    ]
+    entrypoint:
+      [
+        './wait-for.sh',
+        'db',
+        '3306',
+        './wait-for.sh',
+        'cache',
+        '6379',
+        './docker/entrypoint.sh',
+        'start-web',
+      ]
     env_file: .env
     environment:
       PORT: 3000
@@ -40,12 +46,20 @@ services:
       - db
       - cache
       - syncing-server-js
-    entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./wait-for.sh", "syncing-server-js", "3000",
-       "./docker/entrypoint.sh", "start-worker"
-    ]
+    entrypoint:
+      [
+        './wait-for.sh',
+        'db',
+        '3306',
+        './wait-for.sh',
+        'cache',
+        '6379',
+        './wait-for.sh',
+        'syncing-server-js',
+        '3000',
+        './docker/entrypoint.sh',
+        'start-worker',
+      ]
     env_file: .env
     environment:
       PORT: 3000
@@ -60,17 +74,20 @@ services:
       - auth
       - syncing-server-js
     env_file: docker/api-gateway.env
-    # Maybe can be removed
-    ports:
-      - ${EXPOSED_PORT}:3000
     environment:
       PORT: 3000
       AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
-    entrypoint: [
-      "./wait-for.sh", "auth", "3000",
-      "./wait-for.sh", "syncing-server-js", "3000",
-      "./docker/entrypoint.sh", "start-web"
-    ]
+    entrypoint:
+      [
+        './wait-for.sh',
+        'auth',
+        '3000',
+        './wait-for.sh',
+        'syncing-server-js',
+        '3000',
+        './docker/entrypoint.sh',
+        'start-web',
+      ]
     restart: unless-stopped
     networks:
       - standardnotes_standalone
@@ -82,12 +99,20 @@ services:
       - db
       - cache
       - syncing-server-js
-    entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./wait-for.sh", "syncing-server-js", "3000",
-      "./docker/entrypoint.sh", "start-web"
-    ]
+    entrypoint:
+      [
+        './wait-for.sh',
+        'db',
+        '3306',
+        './wait-for.sh',
+        'cache',
+        '6379',
+        './wait-for.sh',
+        'syncing-server-js',
+        '3000',
+        './docker/entrypoint.sh',
+        'start-web',
+      ]
     env_file: docker/auth.env
     environment:
       PORT: 3000
@@ -112,12 +137,20 @@ services:
       - db
       - cache
       - auth
-    entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./wait-for.sh", "auth", "3000",
-      "./docker/entrypoint.sh", "start-worker"
-    ]
+    entrypoint:
+      [
+        './wait-for.sh',
+        'db',
+        '3306',
+        './wait-for.sh',
+        'cache',
+        '6379',
+        './wait-for.sh',
+        'auth',
+        '3000',
+        './docker/entrypoint.sh',
+        'start-worker',
+      ]
     env_file: docker/auth.env
     environment:
       PORT: 3000
